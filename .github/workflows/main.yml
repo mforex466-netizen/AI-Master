@@ -1,0 +1,36 @@
+name: Build AI MASTER APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y git zip unzip build-essential autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo6 cmake libffi-dev libssl-dev
+      - name: Install buildozer
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install buildozer cython==0.29.36
+      - name: Accept SDK license
+        run: echo "android.accept_sdk_license = True" >> buildozer.spec
+      - name: Build debug APK
+        run: buildozer android debug
+      - uses: actions/upload-artifact@v4
+        with:
+          name: AI-MASTER-debug-apk
+          path: bin/*.apk
+          if-no-files-found: error
